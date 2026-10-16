@@ -16,7 +16,7 @@ import LeadGeneration from "./Pages/LeadGeneration";
 import LeadDashboard from "./Pages/LeadDashboard";
 import WhatsAppConnect from "./Pages/WhatsAppConnect";
 import Email from "./Pages/Email";
-import { LeadContext } from "./Context/leadContext";
+import { LeadContext } from "./Context/LeadContext";
 import Register from "./Pages/Register";
 
 

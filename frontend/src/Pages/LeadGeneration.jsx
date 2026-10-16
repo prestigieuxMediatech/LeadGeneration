@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import axios from "axios";
 import * as XLSX from "xlsx";
-import { LeadContext } from "@/Context/leadContext";
+import { LeadContext } from "@/Context/LeadContext";
 import "../uiverce.css"
 import { toast } from "react-toastify";
 

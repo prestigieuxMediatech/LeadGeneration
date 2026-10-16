@@ -7,7 +7,7 @@ import {
   MoveUpRight,
 } from "lucide-react";
 import axios from "axios";
-import { LeadContext } from "@/Context/leadContext";
+import { LeadContext } from "@/Context/LeadContext";
 import { toast } from "react-toastify";
 
 export default function ForgotPassword() {

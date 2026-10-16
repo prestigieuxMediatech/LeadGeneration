@@ -14,7 +14,7 @@ import {
 
 import axios from "axios";
 import { toast } from "react-toastify";
-import { LeadContext } from "@/Context/leadContext";
+import { LeadContext } from "@/Context/LeadContext";
 
 const WhatsAppConnect = () => {
     const{backendUrl}=useContext(LeadContext)

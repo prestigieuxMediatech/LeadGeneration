@@ -23,7 +23,7 @@ import {
 
 import { GenerateButton } from "@/components/ui/generate-button";
 import { useContext } from "react";
-import { LeadContext } from "@/Context/leadContext";
+import { LeadContext } from "@/Context/LeadContext";
 import { Accordion } from "@base-ui/react";
 import axios from "axios";
 
@@ -453,7 +453,7 @@ export function AppSidebar() {
             <SidebarMenuButton
               tooltip="Logout"
               onClick={() => {
-                logout();
+                // logout();
                 setCookie("token", "");
                 setCookie("admin", "");
                 navigate("/");
