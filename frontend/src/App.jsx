@@ -78,10 +78,10 @@ const App = () => {
 
       { role === "true" &&( <Route path="/connect" element={<WhatsAppConnect />} />)}
            
- {/* { role === "true" &&( <Route path="/register" element={<Register />} />
-         )} */}
+ { role === "true" &&( <Route path="/register" element={<Register />} />
+         )}
 
-         <Route path="/register" element={<Register />}/>
+     
            
             
         <Route path="/home" element={<Home />} />
