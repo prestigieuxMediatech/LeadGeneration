@@ -1,4 +1,3 @@
-
 import React, { useContext } from "react";
 
 import { AppSidebar } from "./Component/AppSidebar";
@@ -9,18 +8,24 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 
-import { Route, Routes, Outlet } from "react-router-dom";
+import {
+  Route,
+  Routes,
+  Outlet,
+  Navigate,
+} from "react-router-dom";
 
 import Home from "./Pages/Home";
 import LeadGeneration from "./Pages/LeadGeneration";
 import LeadDashboard from "./Pages/LeadDashboard";
 import WhatsAppConnect from "./Pages/WhatsAppConnect";
 import Email from "./Pages/Email";
-import { LeadContext } from "./Context/LeadContext";
 import Register from "./Pages/Register";
 
+import { LeadContext } from "./Context/LeadContext";
+import ProtectedRoute from "./Component/ProtectedRoute";
 
-// Dashboard layout (Sidebar only for dashboard pages)
+// Dashboard Layout
 const DashboardLayout = () => {
   return (
     <div className="min-h-screen w-full overflow-x-hidden bg-zinc-50">
@@ -38,20 +43,17 @@ const DashboardLayout = () => {
           >
             <SidebarTrigger />
 
-            <div className="flex items-center gap-2">
+            <div className=" ml-5  w-48 h-12 flex items-center ">
               <img
                 src="/logo-removebg-preview.png"
                 alt="Logo"
-                className="size-7 rounded-lg object-cover"
+                className="  w-full h-full object-cover"
               />
 
-              <span className="text-sm font-semibold">
-                My Dashboard
-              </span>
+            
             </div>
           </header>
 
-          {/* Dashboard Pages */}
           <main className="min-h-screen min-w-0 overflow-x-hidden">
             <Outlet />
           </main>
@@ -61,33 +63,74 @@ const DashboardLayout = () => {
   );
 };
 
+// Admin Protected Route
+const AdminRoute = () => {
+  const { getCookie } = useContext(LeadContext);
+
+  const role = getCookie("admin");
+
+  if (role !== "true") {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <Outlet />;
+};
+
 const App = () => {
-  const {getCookie}=useContext(LeadContext)
-  const role= getCookie('admin');
   return (
     <Routes>
-      {/* Public Route - No Sidebar */}
+
+      {/* PUBLIC ROUTE */}
       <Route path="/" element={<Email />} />
-     
 
-      {/* Routes With Sidebar */}
-      <Route element={<DashboardLayout />}>
-        <Route path="/dashboard" element={<LeadDashboard />} />
+      {/* ALL PROTECTED ROUTES */}
+      <Route element={<ProtectedRoute />}>
 
-        <Route path="/generatelead" element={<LeadGeneration />} />
+        {/* Dashboard Layout */}
+        <Route element={<DashboardLayout />}>
 
-      { role === "true" &&( <Route path="/connect" element={<WhatsAppConnect />} />)}
-           
- { role === "true" &&( <Route path="/register" element={<Register />} />
-         )}
+          <Route
+            path="/dashboard"
+            element={<LeadDashboard />}
+          />
 
-     
-           
-            
-        <Route path="/home" element={<Home />} />
+          <Route
+            path="/generatelead"
+            element={<LeadGeneration />}
+          />
 
-        <Route path="/email" element={<Email />} />
+          <Route
+            path="/home"
+            element={<Home />}
+          />
+
+          <Route
+            path="/email"
+            element={<Email />}
+          />
+
+          {/* ADMIN ONLY ROUTES */}
+          <Route element={<AdminRoute />}>
+
+            <Route
+              path="/connect"
+              element={<WhatsAppConnect />}
+            />
+
+            <Route
+              path="/register"
+              element={<Register />}
+            />
+
+          </Route>
+
+        </Route>
+
       </Route>
+
+      {/* UNKNOWN ROUTES */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+
     </Routes>
   );
 };
