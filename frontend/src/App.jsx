@@ -1,3 +1,4 @@
+
 import React, { useContext } from "react";
 
 import { AppSidebar } from "./Component/AppSidebar";
@@ -25,49 +26,61 @@ import Register from "./Pages/Register";
 import { LeadContext } from "./Context/LeadContext";
 import ProtectedRoute from "./Component/ProtectedRoute";
 
-// Dashboard Layout
+// ================= DASHBOARD LAYOUT =================
+
 const DashboardLayout = () => {
   return (
-    <div className="min-h-screen w-full overflow-x-hidden bg-zinc-50">
-      <SidebarProvider>
-        <AppSidebar />
+    <SidebarProvider className="!flex !w-full !min-w-0 !max-w-full overflow-x-clip bg-[#eeece5]">
 
-        <SidebarInset>
-          {/* Mobile Top Bar */}
-          <header
-            className="
-              sticky top-0 z-40 flex h-14 items-center gap-3
-              border-b border-zinc-200/80 bg-white/90
-              px-4 backdrop-blur-xl lg:hidden
-            "
-          >
-            <SidebarTrigger />
+      <AppSidebar />
 
-            <div className=" ml-5  w-48 h-12 flex items-center ">
-              <img
-                src="/logo-removebg-preview.png"
-                alt="Logo"
-                className="  w-full h-full object-cover"
-              />
+      <SidebarInset className="!w-0 !min-w-0 !max-w-full !flex-1 overflow-x-clip bg-[#eeece5]">
 
-            
-            </div>
-          </header>
+        {/* MOBILE HEADER */}
 
-          <main className="min-h-screen min-w-0 overflow-x-hidden">
-            <Outlet />
-          </main>
-        </SidebarInset>
-      </SidebarProvider>
-    </div>
+        <header className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b border-zinc-200 bg-white/90 px-4 backdrop-blur-xl lg:hidden">
+
+          <SidebarTrigger />
+
+          <div className="flex items-center gap-2">
+
+            <img
+              src="/logo-removebg-preview.png"
+              alt="Logo"
+              className="size-7 rounded-lg object-cover"
+            />
+
+            <span className="text-sm font-semibold">
+              My Dashboard
+            </span>
+
+          </div>
+
+        </header>
+
+        {/* DASHBOARD CONTENT */}
+
+        <main className="w-full min-w-0 max-w-full flex-1 overflow-x-clip">
+          <Outlet />
+        </main>
+
+      </SidebarInset>
+
+    </SidebarProvider>
   );
 };
 
-// Admin Protected Route
+// ================= ADMIN ROUTE =================
+
 const AdminRoute = () => {
   const { getCookie } = useContext(LeadContext);
 
+  const token = getCookie("token");
   const role = getCookie("admin");
+
+  if (!token) {
+    return <Navigate to="/" replace />;
+  }
 
   if (role !== "true") {
     return <Navigate to="/dashboard" replace />;
@@ -76,17 +89,20 @@ const AdminRoute = () => {
   return <Outlet />;
 };
 
+// ================= APP =================
+
 const App = () => {
   return (
     <Routes>
 
-      {/* PUBLIC ROUTE */}
+      {/* PUBLIC */}
+
       <Route path="/" element={<Email />} />
 
-      {/* ALL PROTECTED ROUTES */}
+      {/* PROTECTED */}
+
       <Route element={<ProtectedRoute />}>
 
-        {/* Dashboard Layout */}
         <Route element={<DashboardLayout />}>
 
           <Route
@@ -109,7 +125,8 @@ const App = () => {
             element={<Email />}
           />
 
-          {/* ADMIN ONLY ROUTES */}
+          {/* ADMIN ROUTES */}
+
           <Route element={<AdminRoute />}>
 
             <Route
@@ -128,8 +145,10 @@ const App = () => {
 
       </Route>
 
-      {/* UNKNOWN ROUTES */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route
+        path="*"
+        element={<Navigate to="/" replace />}
+      />
 
     </Routes>
   );

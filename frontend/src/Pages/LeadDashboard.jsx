@@ -1,6 +1,7 @@
 
 import React, { useContext, useEffect, useState } from "react";
 import * as XLSX from "xlsx";
+
 import {
   Search,
   MapPin,
@@ -62,7 +63,7 @@ export default function LeadsDashboard() {
           : data.leads || data.data || []
       );
     } catch (error) {
-      console.error(error);
+      console.error("Fetch leads error:", error);
       toast.error("Failed to fetch leads");
     } finally {
       setLoading(false);
@@ -86,7 +87,7 @@ export default function LeadsDashboard() {
 
     const parsed = new Date(date);
 
-    return isNaN(parsed.getTime())
+    return Number.isNaN(parsed.getTime())
       ? "Not set"
       : parsed.toLocaleString("en-IN");
   };
@@ -136,17 +137,21 @@ export default function LeadsDashboard() {
       return matchesSearch && matchesWebsite && matchesRating;
     })
     .sort((a, b) => {
-      if (sortBy === "rating-high")
+      if (sortBy === "rating-high") {
         return (parseFloat(b.rating) || 0) - (parseFloat(a.rating) || 0);
+      }
 
-      if (sortBy === "rating-low")
+      if (sortBy === "rating-low") {
         return (parseFloat(a.rating) || 0) - (parseFloat(b.rating) || 0);
+      }
 
-      if (sortBy === "name-asc")
+      if (sortBy === "name-asc") {
         return String(a.name || "").localeCompare(String(b.name || ""));
+      }
 
-      if (sortBy === "name-desc")
+      if (sortBy === "name-desc") {
         return String(b.name || "").localeCompare(String(a.name || ""));
+      }
 
       return 0;
     });
@@ -198,7 +203,7 @@ export default function LeadsDashboard() {
         }
       );
 
-      if (response.data.success) {
+      if (response.data.success === true) {
         toast.success("Reminder set successfully");
         closeReminder();
         await getLeads();
@@ -241,11 +246,11 @@ export default function LeadsDashboard() {
     }
   };
 
-  // ================= EXCEL =================
+  // ================= EXPORT EXCEL =================
 
   const exportToExcel = () => {
     try {
-      if (!filteredLeads.length) {
+      if (filteredLeads.length === 0) {
         toast.error("No leads available to export");
         return;
       }
@@ -299,14 +304,16 @@ export default function LeadsDashboard() {
         `Business_Leads_${date}.xlsx`
       );
 
-      toast.success("Excel exported successfully");
+      toast.success(
+        `${filteredLeads.length} leads exported successfully`
+      );
     } catch (error) {
       console.error(error);
       toast.error("Excel export failed");
     }
   };
 
-  // ================= STYLES =================
+  // ================= COMMON STYLES =================
 
   const btn =
     "inline-flex items-center justify-center gap-2 rounded-lg border border-[#d5d0c3] bg-[#f5f3ec] px-3 py-2 text-xs font-semibold shadow-[inset_1px_1px_2px_#ffffff,2px_3px_5px_rgba(0,0,0,0.1)] transition-colors hover:bg-[#fff4b8]";
@@ -320,21 +327,21 @@ export default function LeadsDashboard() {
   const thStyle =
     "border-r border-neutral-800 px-3 py-4 text-left text-[10px] font-bold uppercase tracking-wide last:border-r-0";
 
-  const tdStyle =
-    "min-w-0 px-3 py-4 align-top";
+  const tdStyle = "min-w-0 px-3 py-4 align-top";
 
   // ================= JSX =================
 
   return (
-    <div className="min-h-screen w-full min-w-0 max-w-full overflow-x-hidden bg-[#eeece5] text-neutral-900">
+    <div className="min-h-screen w-full min-w-0 max-w-full overflow-x-clip bg-[#eeece5] text-neutral-900">
 
       <main className="mx-auto w-full min-w-0 max-w-[1600px] px-3 py-5 sm:px-5 lg:px-6">
 
-        {/* PAGE HEADER */}
+        {/* ================= PAGE HEADER ================= */}
 
-        <header className="mb-7 flex min-w-0 flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+        <header className="mb-7 flex w-full min-w-0 flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
 
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
+
             <p className="mb-2 text-xs font-bold uppercase tracking-[0.15em] text-neutral-500">
               Lead Management
             </p>
@@ -346,15 +353,19 @@ export default function LeadsDashboard() {
             <p className="mt-2 text-sm text-neutral-500">
               Manage your scraped business leads and follow-ups.
             </p>
+
           </div>
 
-          <div className="flex shrink-0 items-center gap-3 self-start rounded-xl border border-[#d5d0c3] bg-[#f5f3ec] px-5 py-3 shadow-[inset_2px_2px_2px_#ffffff,4px_5px_10px_rgba(0,0,0,0.12)] sm:self-auto">
+          {/* TOTAL BUSINESSES */}
 
-            <div className="flex h-11 w-11 items-center justify-center rounded-lg border border-[#d8c98b] bg-[#fff4b8]">
+          <div className="flex max-w-full min-w-0 shrink-0 items-center gap-3 self-start rounded-xl border border-[#d5d0c3] bg-[#f5f3ec] px-5 py-3 shadow-[inset_2px_2px_2px_#ffffff,4px_5px_10px_rgba(0,0,0,0.12)] sm:self-auto">
+
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[#d8c98b] bg-[#fff4b8]">
               <Building2 size={20} />
             </div>
 
-            <div>
+            <div className="min-w-0">
+
               <p className="text-xs text-neutral-500">
                 Total businesses
               </p>
@@ -362,20 +373,23 @@ export default function LeadsDashboard() {
               <p className="text-xl font-bold tabular-nums">
                 {leads.length}
               </p>
+
             </div>
+
           </div>
 
         </header>
 
-        {/* DIRECTORY */}
+        {/* ================= BUSINESS DIRECTORY ================= */}
 
         <section className="w-full min-w-0 max-w-full overflow-hidden rounded-2xl border border-[#d5d0c3] bg-[#f5f3ec] shadow-[inset_2px_2px_2px_#ffffff,5px_7px_16px_rgba(0,0,0,0.12)]">
 
-          {/* SEARCH HEADER */}
+          {/* ================= SEARCH HEADER ================= */}
 
-          <div className="flex w-full min-w-0 flex-col gap-4 border-b border-[#d5d0c3] p-4 sm:p-5 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex w-full min-w-0 flex-col gap-4 border-b border-[#d5d0c3] p-4 sm:p-5 2xl:flex-row 2xl:items-center 2xl:justify-between">
 
-            <div className="min-w-0 shrink-0">
+            <div className="min-w-0">
+
               <h2 className="text-lg font-bold">
                 Business Directory
               </h2>
@@ -383,9 +397,14 @@ export default function LeadsDashboard() {
               <p className="mt-1 text-xs text-neutral-500">
                 Showing {filteredLeads.length} of {leads.length} businesses
               </p>
+
             </div>
 
-            <div className="flex w-full min-w-0 flex-col gap-3 sm:flex-row xl:w-auto xl:max-w-[650px] xl:flex-1 xl:justify-end">
+            {/* SEARCH CONTROLS */}
+
+            <div className="flex w-full min-w-0 flex-col gap-3 sm:flex-row 2xl:w-auto 2xl:max-w-[650px] 2xl:flex-1 2xl:justify-end">
+
+              {/* EXCEL */}
 
               <button
                 type="button"
@@ -396,6 +415,8 @@ export default function LeadsDashboard() {
                 <Download size={16} />
                 Export Excel
               </button>
+
+              {/* SEARCH */}
 
               <div className="flex min-w-0 flex-1 gap-2">
 
@@ -433,9 +454,9 @@ export default function LeadsDashboard() {
 
           </div>
 
-          {/* FILTER HEADER */}
+          {/* ================= FILTERS ================= */}
 
-          <div className="border-b border-[#d5d0c3] bg-[#f0eee7] px-4 py-4 sm:px-5">
+          <div className="w-full min-w-0 border-b border-[#d5d0c3] bg-[#f0eee7] px-4 py-4 sm:px-5">
 
             <div className="flex flex-wrap items-center justify-between gap-3">
 
@@ -451,13 +472,13 @@ export default function LeadsDashboard() {
 
                 <ChevronDown
                   size={14}
-                  className={
-                    showFilters ? "rotate-180 transition-transform" : "transition-transform"
-                  }
+                  className={`transition-transform ${
+                    showFilters ? "rotate-180" : ""
+                  }`}
                 />
               </button>
 
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-3">
 
                 <span className="rounded-md border border-[#d5d0c3] bg-[#e9e6dc] px-3 py-1.5 text-xs font-semibold text-neutral-600">
                   {filteredLeads.length} results
@@ -479,9 +500,11 @@ export default function LeadsDashboard() {
             {/* FILTER DROPDOWNS */}
 
             {showFilters && (
+
               <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
 
                 <div>
+
                   <label className="mb-2 block text-xs font-semibold text-neutral-600">
                     Website
                   </label>
@@ -495,9 +518,11 @@ export default function LeadsDashboard() {
                     <option value="yes">Has Website</option>
                     <option value="no">No Website</option>
                   </select>
+
                 </div>
 
                 <div>
+
                   <label className="mb-2 block text-xs font-semibold text-neutral-600">
                     Minimum Rating
                   </label>
@@ -514,9 +539,11 @@ export default function LeadsDashboard() {
                     <option value="2">2.0+ Stars</option>
                     <option value="unrated">Not Rated</option>
                   </select>
+
                 </div>
 
                 <div>
+
                   <label className="mb-2 block text-xs font-semibold text-neutral-600">
                     Sort By
                   </label>
@@ -532,23 +559,27 @@ export default function LeadsDashboard() {
                     <option value="name-asc">Name A-Z</option>
                     <option value="name-desc">Name Z-A</option>
                   </select>
+
                 </div>
 
               </div>
+
             )}
 
           </div>
 
-          {/* LOADING / EMPTY */}
+          {/* ================= CONTENT ================= */}
 
           {loading ? (
 
             <div className="flex min-h-[250px] flex-col items-center justify-center gap-4 bg-[#faf9f5] p-8">
+
               <RefreshCw size={24} className="animate-spin" />
 
               <p className="text-sm text-neutral-500">
                 Loading businesses...
               </p>
+
             </div>
 
           ) : filteredLeads.length === 0 ? (
@@ -613,6 +644,7 @@ export default function LeadsDashboard() {
                       </div>
 
                       {lead.rating && (
+
                         <span className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-[#d8c47a] bg-[#fff4b8] px-2 py-1.5 text-xs font-bold">
 
                           <Star
@@ -623,36 +655,51 @@ export default function LeadsDashboard() {
                           {String(lead.rating).replace(/stars?/i, "").trim()}
 
                         </span>
+
                       )}
 
                     </div>
 
-                    {/* MOBILE INFORMATION */}
+                    {/* INFORMATION */}
 
                     <div className="mt-4 space-y-3 rounded-lg border border-[#e0dcd1] bg-[#eeece5] p-3 shadow-inner">
 
+                      {/* PHONE */}
+
                       <div className="flex items-start gap-2">
 
-                        <Phone size={14} className="mt-0.5 shrink-0 text-neutral-500" />
+                        <Phone
+                          size={14}
+                          className="mt-0.5 shrink-0 text-neutral-500"
+                        />
 
                         {lead.phone ? (
+
                           <a
                             href={`tel:${lead.phone}`}
                             className="min-w-0 break-all text-xs font-semibold hover:underline"
                           >
                             {lead.phone}
                           </a>
+
                         ) : (
+
                           <span className="text-xs text-neutral-400">
                             Phone unavailable
                           </span>
+
                         )}
 
                       </div>
 
+                      {/* ADDRESS */}
+
                       <div className="flex items-start gap-2">
 
-                        <MapPin size={14} className="mt-0.5 shrink-0 text-neutral-500" />
+                        <MapPin
+                          size={14}
+                          className="mt-0.5 shrink-0 text-neutral-500"
+                        />
 
                         <p className="min-w-0 break-words text-xs leading-5 text-neutral-600">
                           {cleanAddress(lead.address)}
@@ -660,9 +707,14 @@ export default function LeadsDashboard() {
 
                       </div>
 
+                      {/* REMINDER */}
+
                       <div className="flex items-start gap-2">
 
-                        <Bell size={14} className="mt-0.5 shrink-0 text-neutral-500" />
+                        <Bell
+                          size={14}
+                          className="mt-0.5 shrink-0 text-neutral-500"
+                        />
 
                         <p className="min-w-0 break-words text-xs text-neutral-600">
                           {lead.reminder
@@ -748,6 +800,8 @@ export default function LeadsDashboard() {
 
               {/* ================= DESKTOP TABLE ================= */}
 
+              {/* Only this container scrolls horizontally */}
+
               <div className="hidden w-full min-w-0 max-w-full overflow-x-auto overscroll-x-contain lg:block">
 
                 <table className="w-full min-w-[1100px] table-fixed border-collapse text-left">
@@ -765,9 +819,12 @@ export default function LeadsDashboard() {
                     <col style={{ width: "13%" }} />
                   </colgroup>
 
+                  {/* TABLE HEADER */}
+
                   <thead className="bg-neutral-950 text-white">
 
                     <tr>
+
                       {[
                         "#",
                         "Business",
@@ -788,9 +845,12 @@ export default function LeadsDashboard() {
                         </th>
 
                       ))}
+
                     </tr>
 
                   </thead>
+
+                  {/* TABLE BODY */}
 
                   <tbody className="divide-y divide-[#d5d0c3] bg-[#faf9f5]">
 
@@ -848,7 +908,10 @@ export default function LeadsDashboard() {
                               className="inline-flex max-w-full items-center gap-1.5 rounded-lg border border-[#d5d0c3] bg-[#f5f3ec] px-2 py-2 text-[11px] font-semibold shadow-[2px_3px_5px_rgba(0,0,0,0.1)] hover:bg-[#fff4b8]"
                             >
 
-                              <Phone size={12} className="shrink-0" />
+                              <Phone
+                                size={12}
+                                className="shrink-0"
+                              />
 
                               <span className="min-w-0 break-all tabular-nums">
                                 {lead.phone}
@@ -948,9 +1011,11 @@ export default function LeadsDashboard() {
                                 title="Open website"
                                 className={`${btn} max-w-full gap-1 px-2 py-2 text-[11px]`}
                               >
+
                                 <Globe size={12} className="shrink-0" />
                                 Website
                                 <ExternalLink size={10} className="shrink-0" />
+
                               </a>
 
                             ) : (
@@ -970,9 +1035,11 @@ export default function LeadsDashboard() {
                                 title="Open Google Maps"
                                 className={`${btn} max-w-full gap-1 px-2 py-2 text-[11px]`}
                               >
+
                                 <MapPin size={12} className="shrink-0" />
                                 Maps
                                 <ExternalLink size={10} className="shrink-0" />
+
                               </a>
 
                             )}
@@ -992,8 +1059,10 @@ export default function LeadsDashboard() {
                               onClick={() => openReminder(lead)}
                               className={`${yellowBtn} min-h-9 w-full gap-1 px-1.5 text-[11px]`}
                             >
+
                               <Bell size={12} className="shrink-0" />
                               Reminder
+
                             </button>
 
                             <button
@@ -1001,8 +1070,10 @@ export default function LeadsDashboard() {
                               onClick={() => notIntrested(lead._id)}
                               className={`${btn} min-h-9 w-full gap-1 px-1.5 text-[10px] text-neutral-600 hover:text-red-600`}
                             >
+
                               <Trash2 size={12} className="shrink-0" />
                               Not Interested
+
                             </button>
 
                           </div>
@@ -1023,9 +1094,9 @@ export default function LeadsDashboard() {
 
           )}
 
-          {/* FOOTER */}
+          {/* ================= FOOTER ================= */}
 
-          <div className="flex items-center justify-between gap-3 border-t border-[#d5d0c3] bg-[#f0eee7] px-4 py-4 text-xs font-medium text-neutral-500 sm:px-5">
+          <div className="flex w-full min-w-0 items-center justify-between gap-3 border-t border-[#d5d0c3] bg-[#f0eee7] px-4 py-4 text-xs font-medium text-neutral-500 sm:px-5">
 
             <span>
               {filteredLeads.length} businesses displayed
@@ -1048,6 +1119,8 @@ export default function LeadsDashboard() {
         <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-3 sm:p-4">
 
           <div className="my-auto w-full max-w-md rounded-2xl border border-[#d5d0c3] bg-[#f5f3ec] p-5 shadow-[8px_12px_30px_rgba(0,0,0,0.25)] sm:p-6">
+
+            {/* MODAL HEADER */}
 
             <div className="mb-5 flex items-start justify-between gap-4">
 
@@ -1074,6 +1147,8 @@ export default function LeadsDashboard() {
 
             </div>
 
+            {/* SELECTED BUSINESS */}
+
             <div className="mb-5 rounded-lg border border-[#dedad0] bg-[#eeece5] p-3 shadow-inner">
 
               <p className="break-words text-sm font-bold">
@@ -1089,6 +1164,8 @@ export default function LeadsDashboard() {
               )}
 
             </div>
+
+            {/* REMINDER FORM */}
 
             <form
               onSubmit={(e) => saveReminder(e, reminderLead._id)}
