@@ -1,0 +1,375 @@
+import puppeteer from "puppeteer";
+
+const browser = await puppeteer.launch({
+ 
+  defaultViewport: null,
+});
+
+const page = await browser.newPage();
+
+await page.setViewport({
+  width: 1080,
+  height: 1024,
+});
+
+const query = "restaurants in Mumbai";
+
+await page.goto(
+  `https://www.google.com/maps/search/${encodeURIComponent(query)}`,
+  {
+    waitUntil: "domcontentloaded",
+  }
+);
+
+console.log("Google Maps opened...");
+
+await new Promise((resolve) => setTimeout(resolve, 5000));
+
+/*
+|--------------------------------------------------------------------------
+| 1. Scroll Google Maps results and collect ALL restaurant links
+|--------------------------------------------------------------------------
+*/
+
+const restaurantMap = new Map();
+
+let previousCount = 0;
+let unchangedCount = 0;
+
+console.log("\nStarting to collect restaurants...\n");
+
+while (unchangedCount < 4) {
+  /*
+  |--------------------------------------------------------------------------
+  | Find all currently loaded restaurant links
+  |--------------------------------------------------------------------------
+  */
+
+  const restaurantLinks = await page.$$eval(
+    '[role="feed"] a[href*="/maps/place/"]',
+    (links) => {
+      return links.map((link) => ({
+        name: link.getAttribute("aria-label"),
+        url: link.href,
+      }));
+    }
+  );
+
+  /*
+  |--------------------------------------------------------------------------
+  | Add restaurants to Map
+  |--------------------------------------------------------------------------
+  */
+
+  for (const restaurant of restaurantLinks) {
+    if (
+      restaurant.url &&
+      restaurant.url.includes("/maps/place/")
+    ) {
+      restaurantMap.set(restaurant.url, restaurant);
+    }
+  }
+
+  console.log(
+    `Restaurants collected: ${restaurantMap.size}`
+  );
+
+  /*
+  |--------------------------------------------------------------------------
+  | Scroll Google Maps results panel
+  |--------------------------------------------------------------------------
+  */
+
+  await page.evaluate(() => {
+    const feed = document.querySelector('[role="feed"]');
+
+    if (feed) {
+      feed.scrollBy({
+        top: 1000,
+        behavior: "smooth",
+      });
+    }
+  });
+
+  /*
+  |--------------------------------------------------------------------------
+  | Wait for Google Maps to load new results
+  |--------------------------------------------------------------------------
+  */
+
+  await new Promise((resolve) => setTimeout(resolve, 2500));
+
+  /*
+  |--------------------------------------------------------------------------
+  | Check if new restaurants were found
+  |--------------------------------------------------------------------------
+  */
+
+  if (restaurantMap.size === previousCount) {
+    unchangedCount++;
+
+    console.log(
+      `No new restaurants found (${unchangedCount}/4)`
+    );
+  } else {
+    unchangedCount = 0;
+  }
+
+  previousCount = restaurantMap.size;
+}
+
+const uniqueRestaurants = [...restaurantMap.values()];
+
+console.log("\n==============================");
+console.log(
+  `TOTAL RESTAURANTS FOUND: ${uniqueRestaurants.length}`
+);
+console.log("==============================\n");
+
+/*
+|--------------------------------------------------------------------------
+| 2. Visit every restaurant
+|--------------------------------------------------------------------------
+*/
+
+const results = [];
+
+for (let i = 0; i < uniqueRestaurants.length; i++) {
+  const restaurant = uniqueRestaurants[i];
+
+  console.log(
+    `\n[${i + 1}/${uniqueRestaurants.length}] Opening: ${
+      restaurant.name
+    }`
+  );
+
+  try {
+    await page.goto(restaurant.url, {
+      waitUntil: "domcontentloaded",
+      timeout: 30000,
+    });
+
+    await new Promise((resolve) =>
+      setTimeout(resolve, 2500)
+    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | Extract restaurant details
+    |--------------------------------------------------------------------------
+    */
+
+    const details = await page.evaluate(() => {
+      const getText = (selector) => {
+        const element = document.querySelector(selector);
+
+        return element?.innerText?.trim() || null;
+      };
+
+      const getLink = (selector) => {
+        const element = document.querySelector(selector);
+
+        return element?.href || null;
+      };
+
+      return {
+        name:
+          document
+            .querySelector("h1")
+            ?.innerText?.trim() || null,
+
+        phone:
+          document
+            .querySelector('a[href^="tel:"]')
+            ?.getAttribute("href")
+            ?.replace("tel:", "") || null,
+
+        website:
+          getLink('a[data-item-id="authority"]'),
+
+        address:
+          getText('[data-item-id="address"]'),
+
+        rating:
+          document
+            .querySelector(
+              '[role="img"][aria-label*="stars"]'
+            )
+            ?.getAttribute("aria-label") || null,
+      };
+    });
+
+
+// SociAL MEDIA DETAILS 
+
+async function findWebsiteDetails(browser, website) {
+  if (!website) {
+    return {
+      email: null,
+      instagram: null,
+      facebook: null,
+      youtube: null,
+    };
+  }
+
+  const websitePage = await browser.newPage();
+
+  try {
+    await websitePage.goto(website, {
+      waitUntil: "domcontentloaded",
+      timeout: 20000,
+    });
+
+    await new Promise((resolve) =>
+      setTimeout(resolve, 2000)
+    );
+
+    const details = await websitePage.evaluate(() => {
+      const links = [...document.querySelectorAll("a")];
+
+      let instagram = null;
+      let facebook = null;
+      let youtube = null;
+
+      for (const link of links) {
+        const href = link.href?.toLowerCase();
+
+        if (!href) continue;
+
+        if (
+          !instagram &&
+          href.includes("instagram.com")
+        ) {
+          instagram = link.href;
+        }
+
+        if (
+          !facebook &&
+          href.includes("facebook.com")
+        ) {
+          facebook = link.href;
+        }
+
+        if (
+          !youtube &&
+          (
+            href.includes("youtube.com") ||
+            href.includes("youtu.be")
+          )
+        ) {
+          youtube = link.href;
+        }
+      }
+
+      /*
+      |--------------------------------------------------------------------------
+      | Find email
+      |--------------------------------------------------------------------------
+      */
+
+      const text = document.body.innerText;
+
+      const emails =
+        text.match(
+          /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi
+        ) || [];
+
+      const email =
+        emails.find(
+          (email) =>
+            !email.includes("example.com") &&
+            !email.includes("sentry") &&
+            !email.includes("google")
+        ) || null;
+
+      return {
+        email,
+        instagram,
+        facebook,
+        youtube,
+      };
+    });
+
+    await websitePage.close();
+
+    return details;
+
+  } catch (error) {
+
+    console.log(
+      `Website failed: ${website}`
+    );
+
+    await websitePage.close();
+
+    return {
+      email: null,
+      instagram: null,
+      facebook: null,
+      youtube: null,
+    };
+  }
+}
+
+
+const socialDetails =
+  await findWebsiteDetails(
+    browser,
+    details.website
+  );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Save result
+    |--------------------------------------------------------------------------
+    */
+
+  results.push({
+  ...details,
+  ...socialDetails,
+  mapsUrl: restaurant.url,
+});
+
+    console.log(details);
+  } catch (error) {
+    console.log(
+      `Failed to scrape ${restaurant.name}`
+    );
+
+    console.log(error.message);
+
+    results.push({
+      name: restaurant.name,
+      phone: null,
+      website: null,
+      address: null,
+      rating: null,
+      mapsUrl: restaurant.url,
+      error: error.message,
+    });
+  }
+}
+
+/*
+|--------------------------------------------------------------------------
+| 3. Final results
+|--------------------------------------------------------------------------
+*/
+
+console.log("\n");
+console.log("==============================");
+console.log("FINAL RESULTS");
+console.log("==============================");
+
+console.log(
+  JSON.stringify(results, null, 2)
+);
+
+/*
+|--------------------------------------------------------------------------
+| 4. Close browser
+|--------------------------------------------------------------------------
+*/
+
+await browser.close();

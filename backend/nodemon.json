@@ -1,0 +1,18 @@
+{
+  "watch": [
+    "controller",
+    "routes",
+    "models",
+    "middleware",
+    "services",
+    "config",
+    "index.js"
+  ],
+  "ignore": [
+    "baileys_auth_info/**",
+    "node_modules/**",
+    ".git/**"
+  ],
+  "ext": "js,mjs,json",
+  "exec": "node index.js"
+}
