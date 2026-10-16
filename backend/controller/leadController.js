@@ -80,8 +80,8 @@ export const GenerateLead = async (req, res) => {
         }
       });
 
-      page.setDefaultNavigationTimeout(20000);
-      page.setDefaultTimeout(10000);
+      page.setDefaultNavigationTimeout(80000);
+      page.setDefaultTimeout(30000);
     };
 
     const page = await browser.newPage();
