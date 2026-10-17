@@ -1125,6 +1125,7 @@ const saveFilters = async () => {
       },
     });
 
+    console.log(response)
     if (response?.data?.success === true) {
 
       const cleanedLeads = (response?.data?.leads || []).map((lead) => ({
@@ -1146,7 +1147,7 @@ const saveFilters = async () => {
     }
 
   } catch (e) {
-    console.error(e);
+    console.error(e.message);
 
     setLeads([]);
 
