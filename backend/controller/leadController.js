@@ -618,3 +618,18 @@ export const notIntrested=async(req,res)=>{
     res.json({success:false,error:e.message})
   }
 }
+
+
+//set as converted 
+export const setConverted=async(req,res)=>{
+  try{
+    const {id}=req.body
+     await LeadModels.findOneAndUpdate({_id:id},{$set:{converted:false}})
+
+     res.json({success:true, data:"lead converted successfully "})
+  }
+   catch(e){
+    console.log(e.message )
+    res.json({success:false, error:e.message})
+   }
+}

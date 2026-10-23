@@ -15,7 +15,7 @@ import { mainRouter } from './routes/mainRoute.js'
 import { connectWhatsApp } from './config/tp.js'
 import startReminderCron from './corn-job/reminder.js'
 import { sendMessage } from './corn-job/WhatsAppAutomation.js'
-import { isWhatsAppReady } from './config/whatsapp.js'
+import { getWhatsApp, isWhatsAppReady } from './config/whatsapp.js'
 import { UserModel } from './models/UserModel.js'
 import { LeadModels } from './models/LeadModel.js'
 
@@ -32,8 +32,10 @@ app.use(cors())
 // routes
 app.use('/api', mainRouter)
 
+
+
 ConnectDB()
-sendMessage()
+
 
 //Am formate 
 //"24 4 * * *"
@@ -53,41 +55,41 @@ sendMessage()
 // },)
 
 
- corn.schedule(
-    "* * * * *",
+//  corn.schedule(
+//     "* * * * *",
 
-    async () => {
-      try {
-        console.log("WhatsApp cron started...");
+//     async () => {
+//       try {
+//         console.log("WhatsApp cron started...");
      
       
 
 
 
-       // Check WhatsApp connection
-        if (!isWhatsAppReady()) {
-          console.log("WhatsApp is not connected. Skipping cron.");
-          return;
-        }
+//        // Check WhatsApp connection
+//         if (!isWhatsAppReady()) {
+//           console.log("WhatsApp is not connected. Skipping cron.");
+//           return;
+//         }
 
-        // Send pending messages
-        await sendMessage();
+//         // Send pending messages
+//         await sendMessage();
 
-        console.log("WhatsApp cron completed");
+//         console.log("WhatsApp cron completed");
 
-      } catch (error) {
-        console.error(
-          "WhatsApp Cron Error:",
-          error.message
-        );
-      }
-    },
+//       } catch (error) {
+//         console.error(
+//           "WhatsApp Cron Error:",
+//           error.message
+//         );
+//       }
+//     },
 
-    {
-      timezone: "Asia/Kolkata",
-      noOverlap: true,
-    }
-  );
+//     {
+//       timezone: "Asia/Kolkata",
+//       noOverlap: true,
+//     }
+//   );
 
 
 
@@ -96,8 +98,8 @@ const startServer =
   async () => {
 
     try {
-
      
+   
       startReminderCron()
 
       app.listen(
@@ -128,6 +130,7 @@ const startServer =
 
 
 startServer();
+
 // creating the connection 
 
 console.log(process.env.MONGO_URL)

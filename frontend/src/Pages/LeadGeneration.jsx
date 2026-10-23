@@ -1125,6 +1125,7 @@ const saveFilters = async () => {
       },
     });
 
+    console.log("lala bc ")
     console.log(response)
     if (response?.data?.success === true) {
 

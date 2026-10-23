@@ -1,6 +1,6 @@
 import express from "express"
-import { GenerateLead, getLeads, notIntrested, SaveLead, setReminder } from "../controller/leadController.js"
-import {  getWhatsAppQRController, getWhatsAppStatusController,  logoutWhatsAppController, reconnectWhatsAppController } from "../controller/whatsappController.js"
+import { GenerateLead, getLeads, notIntrested, SaveLead, setConverted, setReminder } from "../controller/leadController.js"
+import {  addMember, getWhatsAppQRController, getWhatsAppStatusController,  logoutWhatsAppController, reconnectWhatsAppController } from "../controller/whatsappController.js"
 import {  Login,  logout,  Registor } from "../controller/UserController.js"
 import { AuthUser } from "../middleware/Auth.js"
 
@@ -19,6 +19,8 @@ mainRouter.get("/all-lead",AuthUser,getLeads)
 mainRouter.post("/set-reminder",AuthUser,setReminder)
 
 mainRouter.post("/not-intrested",AuthUser,notIntrested)
+// converting the lead
+mainRouter.post("/set-converted",AuthUser,setConverted)
 mainRouter.post("/logout",AuthUser,logout)
 
 
@@ -38,3 +40,6 @@ mainRouter.get("/getstatus",getWhatsAppStatusController)
 //  reconnect the whatsApp
 
 mainRouter.get("/reconnect",reconnectWhatsAppController)
+
+// add member in the group
+mainRouter.post("/add",AuthUser,addMember)

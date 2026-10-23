@@ -17,7 +17,11 @@ import {
   Filter,
   ChevronDown,
   Download,
+  ThumbsUp,
+  ThumbsDown,
 } from "lucide-react";
+
+
 
 import axios from "axios";
 import { LeadContext } from "@/Context/LeadContext";
@@ -246,6 +250,58 @@ export default function LeadsDashboard() {
     }
   };
 
+
+  
+
+
+useEffect(()=>{
+  console.log(leads)
+  console.log(leads.filter((e)=>e.converted === false).length)
+ 
+},[leads])
+
+
+// converting the lead
+const setConverted =(id)=>{
+try{
+ const  response=axios.post(`${backendUrl}/set-converetd/`,{id},{headers:{token}})
+
+ if(response.data.success ===true){
+  toast.success("")
+ }
+}
+catch(e){
+  console.log(e.message )
+}
+
+}
+
+
+  // add member 
+  const add=async()=>{
+    try{
+      let phone =[]
+      
+      console.log("lala")
+
+      leads.forEach(e => {
+        
+        if(e.phone!=""){
+          phone.push(e.phone)
+        }
+      });
+
+      console.log(phone)
+
+
+      const response=await axios.post(`${backendUrl}/add`,{"phone":phone},{headers:{token}})
+      console.log(response)
+    }
+    catch(e){
+      console.log(e.message)
+    }
+  }
+
   // ================= EXPORT EXCEL =================
 
   const exportToExcel = () => {
@@ -380,6 +436,96 @@ export default function LeadsDashboard() {
 
         </header>
 
+
+
+        
+{/* ================= LEAD STATUS CARDS ================= */}
+
+<div className="mb-7 grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+  {/* INTERESTED LEADS */}
+  <div className="group relative overflow-hidden rounded-2xl border border-[#d5d0c3] bg-[#f5f3ec] p-5 shadow-[inset_2px_2px_2px_#ffffff,5px_7px_16px_rgba(0,0,0,0.12)] transition-all duration-300 hover:-translate-y-1">
+
+    <div className="flex items-start justify-between">
+
+      <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-green-200 bg-green-100 text-green-700">
+        <ThumbsUp size={21} />
+      </div>
+
+      <span className="rounded-full bg-green-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-green-700">
+        Interested
+      </span>
+
+    </div>
+
+    <div className="mt-6">
+      <h3 className="text-4xl font-bold tabular-nums tracking-tight">
+        {leads?.filter(e=>e.converted === true).length}
+      </h3>
+
+      <p className="mt-2 text-sm font-semibold text-neutral-700">
+        Interested Leads
+      </p>
+
+      <p className="mt-1 text-xs text-neutral-500">
+        Businesses interested in your services
+      </p>
+    </div>
+
+    <div className="mt-5 h-1 w-full rounded-full bg-green-100">
+      <div
+        className="h-full rounded-full bg-green-600 transition-all duration-500"
+        style={{
+          width: `${leads.length ? (interestedLeads / leads.length) * 100 : 0}%`
+        }}
+      />
+    </div>
+
+  </div>
+
+  {/* NOT INTERESTED LEADS */}
+  <div className="group relative overflow-hidden rounded-2xl border border-[#d5d0c3] bg-[#f5f3ec] p-5 shadow-[inset_2px_2px_2px_#ffffff,5px_7px_16px_rgba(0,0,0,0.12)] transition-all duration-300 hover:-translate-y-1">
+
+    <div className="flex items-start justify-between">
+
+      <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-red-200 bg-red-100 text-red-600">
+        <ThumbsDown size={21} />
+      </div>
+
+      <span className="rounded-full bg-red-100 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-red-600">
+        Not Interested
+      </span>
+
+    </div>
+
+    <div className="mt-6">
+      <h3 className="text-4xl font-bold tabular-nums tracking-tight">
+         {leads?.filter(e=>e.converted === false).length}
+      </h3>
+
+      <p className="mt-2 text-sm font-semibold text-neutral-700">
+        Not Interested Leads
+      </p>
+
+      <p className="mt-1 text-xs text-neutral-500">
+        Businesses that declined your services
+      </p>
+    </div>
+
+    <div className="mt-5 h-1 w-full rounded-full bg-red-100">
+      <div
+        className="h-full rounded-full bg-red-500 transition-all duration-500"
+        style={{
+          width: `${leads.length ? (notInterestedLeads / leads.length) * 100 : 0}%`
+        }}
+      />
+    </div>
+
+  </div>
+
+</div>
+
+
         {/* ================= BUSINESS DIRECTORY ================= */}
 
         <section className="w-full min-w-0 max-w-full overflow-hidden rounded-2xl border border-[#d5d0c3] bg-[#f5f3ec] shadow-[inset_2px_2px_2px_#ffffff,5px_7px_16px_rgba(0,0,0,0.12)]">
@@ -415,6 +561,17 @@ export default function LeadsDashboard() {
                 <Download size={16} />
                 Export Excel
               </button>
+
+
+              {/* <button
+                type="button"
+                onClick={add}
+                disabled={!filteredLeads.length}
+                className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg border border-neutral-700 bg-neutral-950 px-5 text-xs font-bold text-white hover:bg-neutral-800 disabled:opacity-50"
+              >
+                <Download size={16} />
+                Add Group
+              </button> */}
 
               {/* SEARCH */}
 
@@ -790,6 +947,14 @@ export default function LeadsDashboard() {
                         Not Interested
                       </button>
 
+                        <button
+                        type="button"
+                        
+                        className={`${btn} min-h-10 px-2 text-neutral-600 hover:text-green-600`}
+                      >
+                        
+                         converted
+                      </button>
                     </div>
 
                   </article>
@@ -1073,6 +1238,18 @@ export default function LeadsDashboard() {
 
                               <Trash2 size={12} className="shrink-0" />
                               Not Interested
+
+                            </button>
+
+
+                             <button
+                              type="button"
+                           
+                              className={`${btn} min-h-9 w-full gap-1 px-1.5 text-[12px] text-bold text-neutral-600 hover:text-green-600`}
+                            >
+
+                        
+                               Converted
 
                             </button>
 
